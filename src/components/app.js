@@ -99,8 +99,10 @@ class Tasks extends Component {
     })
   }
 
-  render ({ tasks, removeTask, completeTask }, { startX, currentX }) {
+  render ({ tasks, removeTask, completeTask }, { startX, currentX, target }) {
     const offset = currentX - startX
+    const textContent = target !== undefined && target.textContent
+
     return (
       <section
         style={styles.list}
@@ -112,10 +114,13 @@ class Tasks extends Component {
           <Task
             key={index}
             index={index}
-            text={task}
+            task={task}
             remove={removeTask}
             complete={completeTask}
-            offset={offset}
+            offset={task.slice(1) === textContent
+              ? offset
+              : 0
+            }
           />
         ))}
       </section>
@@ -123,8 +128,8 @@ class Tasks extends Component {
   }
 }
 
-const Task = ({ text, remove, index, complete, offset }) => {
-  const done = text[0] === '-'
+const Task = ({ task, remove, index, complete, offset }) => {
+  const done = task[0] === '-'
   const style = {
     listStyle: 'none',
     borderTop: `1px solid ${colors.textSecondary}`,
@@ -139,8 +144,8 @@ const Task = ({ text, remove, index, complete, offset }) => {
   }
 
   const formattedText = done
-    ? <s>{text.slice(1)}</s>
-    : text.slice(1)
+    ? <s>{task.slice(1)}</s>
+    : task.slice(1)
   return (
     <article
       style={style}
