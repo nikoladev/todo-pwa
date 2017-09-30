@@ -53,22 +53,74 @@ const styles = {
   }
 }
 
-const Tasks = ({ tasks, removeTask, completeTask }) => {
-  return (
-    <section
-      style={styles.list}
-    >
-      {tasks.map((task, index) => (
-        <Task
-          key={index}
-          index={index}
-          text={task}
-          remove={removeTask}
-          complete={completeTask}
-        />
-      ))}
-    </section>
-  )
+class Tasks extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      startX: -1,
+      currentX: -1,
+      target: undefined
+    }
+
+    this.handleTouchStart = this.handleTouchStart.bind(this)
+    this.handleTouchMove = this.handleTouchMove.bind(this)
+    this.handleTouchEnd = this.handleTouchEnd.bind(this)
+  }
+
+  handleTouchStart (evt) {
+    if (this.state.target !== undefined) {
+      return
+    }
+    const touch = evt.changedTouches[0]
+
+    this.setState({
+      startX: touch.clientX,
+      currentX: touch.clientX,
+      target: touch.target
+    })
+  }
+
+  handleTouchMove (evt) {
+    if (this.state.target === undefined) {
+      return
+    }
+    const touch = evt.changedTouches[0]
+
+    this.setState({
+      currentX: touch.clientX
+    })
+  }
+
+  handleTouchEnd (evt) {
+    this.setState({
+      startX: -1,
+      currentX: -1,
+      target: undefined
+    })
+  }
+
+  render ({ tasks, removeTask, completeTask }, { startX, currentX }) {
+    const offset = currentX - startX
+    return (
+      <section
+        style={styles.list}
+        onTouchStart={this.handleTouchStart}
+        onTouchMove={this.handleTouchMove}
+        onTouchEnd={this.handleTouchEnd}
+      >
+        {tasks.map((task, index) => (
+          <Task
+            key={index}
+            index={index}
+            text={task}
+            remove={removeTask}
+            complete={completeTask}
+            offset={offset}
+          />
+        ))}
+      </section>
+    )
+  }
 }
 
 const Task = ({ text, remove, index, complete, offset }) => {
@@ -81,6 +133,10 @@ const Task = ({ text, remove, index, complete, offset }) => {
       ? colors.textSecondary
       : ''
   }
+  const textStyle = {
+    position: 'relative',
+    left: `${offset}px`
+  }
 
   const formattedText = done
     ? <s>{text.slice(1)}</s>
@@ -90,7 +146,7 @@ const Task = ({ text, remove, index, complete, offset }) => {
       style={style}
       onClick={() => complete(index)}
     >
-      {formattedText}
+      <span style={textStyle}>{formattedText}</span>
     </article>
   )
 }
