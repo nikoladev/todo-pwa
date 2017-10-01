@@ -180,17 +180,20 @@ const Task = ({ task, setMoving, index, complete, offset }) => {
   )
 }
 
+const saveToStorage = (tasks) => window.localStorage.setItem('tasks', JSON.stringify(tasks))
+const loadFromStorage = () => JSON.parse(window.localStorage.getItem('tasks'))
+
 export default class App extends Component {
   constructor () {
     super()
     this.state = {
       input: '',
       placeholder: getPlaceholder(),
-      tasks: [
-        '+buy groceries',
-        '+read about React',
-        '+remove this task'
-      ]
+      tasks: loadFromStorage() ||
+        [
+          '+Original',
+          '+Tasks'
+        ]
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -210,6 +213,8 @@ export default class App extends Component {
       const input = prevState.input
       newTasks.unshift('+' + input)
 
+      saveToStorage(newTasks)
+
       return {
         input: '',
         placeholder: getPlaceholder(),
@@ -228,6 +233,8 @@ export default class App extends Component {
         newTasks[taskIndex] = '+' + str.slice(1)
       }
 
+      saveToStorage(newTasks)
+
       return {
         tasks: newTasks
       }
@@ -238,6 +245,9 @@ export default class App extends Component {
     this.setState((prevState, props) => {
       const newTasks = this.state.tasks.slice()
       newTasks.splice(taskIndex, 1)
+
+      saveToStorage(newTasks)
+
       return {
         tasks: newTasks
       }
