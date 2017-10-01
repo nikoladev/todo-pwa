@@ -59,12 +59,14 @@ class Tasks extends Component {
     this.state = {
       startX: -1,
       currentX: -1,
-      target: undefined
+      target: undefined,
+      moving: -1
     }
 
     this.handleTouchStart = this.handleTouchStart.bind(this)
     this.handleTouchMove = this.handleTouchMove.bind(this)
     this.handleTouchEnd = this.handleTouchEnd.bind(this)
+    this.setMoving = this.setMoving.bind(this)
   }
 
   handleTouchStart (evt) {
@@ -92,14 +94,30 @@ class Tasks extends Component {
   }
 
   handleTouchEnd (evt) {
-    this.setState({
-      startX: -1,
-      currentX: -1,
-      target: undefined
+    this.setState((prevState, props) => {
+      const { startX, currentX, moving } = prevState
+      if (Math.abs(currentX - startX) > 75) {
+        this.props.removeTask(moving)
+      }
+      return {
+        startX: -1,
+        currentX: -1,
+        target: undefined,
+        moving: -1
+      }
     })
   }
 
-  render ({ tasks, removeTask, completeTask }, { startX, currentX, target }) {
+  setMoving (index) {
+    if (index === -1 ||
+      // prevent infinite loop of `setState > render > setState > ...`
+      index === this.state.moving) {
+      return
+    }
+    this.setState({ moving: index })
+  }
+
+  render ({ tasks, completeTask }, { startX, currentX, target }) {
     const offset = currentX - startX
     const textContent = target !== undefined && target.textContent
 
@@ -115,7 +133,7 @@ class Tasks extends Component {
             key={index}
             index={index}
             task={task}
-            remove={removeTask}
+            setMoving={this.setMoving}
             complete={completeTask}
             offset={task.slice(1) === textContent
               ? offset
@@ -128,7 +146,7 @@ class Tasks extends Component {
   }
 }
 
-const Task = ({ task, remove, index, complete, offset }) => {
+const Task = ({ task, setMoving, index, complete, offset }) => {
   const done = task[0] === '-'
   const style = {
     listStyle: 'none',
@@ -138,9 +156,15 @@ const Task = ({ task, remove, index, complete, offset }) => {
       ? colors.textSecondary
       : ''
   }
+  const opacity = Math.min(1, Math.max(0.025, (150 - Math.abs(offset)) / 150))
   const textStyle = {
     position: 'relative',
+    opacity: opacity,
     left: `${offset}px`
+  }
+
+  if (opacity < 1) {
+    setMoving(index)
   }
 
   const formattedText = done
