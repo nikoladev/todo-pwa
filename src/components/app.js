@@ -60,7 +60,7 @@ class Tasks extends Component {
       startX: -1,
       currentX: -1,
       target: undefined,
-      moving: -1
+      moving: undefined
     }
 
     this.handleTouchStart = this.handleTouchStart.bind(this)
@@ -103,15 +103,14 @@ class Tasks extends Component {
         startX: -1,
         currentX: -1,
         target: undefined,
-        moving: -1
+        moving: undefined
       }
     })
   }
 
   setMoving (index) {
-    if (index === -1 ||
-      // prevent infinite loop of `setState > render > setState > ...`
-      index === this.state.moving) {
+    // prevent infinite loop of `setState > render > setState > ...`
+    if (this.state.moving !== undefined || index !== this.state.moving) {
       return
     }
     this.setState({ moving: index })
